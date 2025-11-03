@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Home System — MU08</title>
+<style>
+:root{
+  --bg-dark-1:#051018; --bg-dark-2:#081426;
+  --bg-light-1:#fbfbfc; --bg-light-2:#f2f5f9;
+  --card: rgba(255,255,255,0.03);
+  --glass-border: rgba(255,255,255,0.05);
+  --gold-1:#c9a84a; --gold-2:#ffd97a;
+  --muted:#9fb0d9; --text:#eef6ff;
+  --ok:#4ef08a; --warn:#ffb86b; --danger:#ff6b6b;
+  --radius:14px; --shadow: 0 18px 46px rgba(2,8,23,0.45);
+  --poll-ms:4000;
+}
+[data-theme="light"]{
+  --bg-dark-1:#f8fafc; --bg-dark-2:#eef4ff;
+  --card: rgba(12,18,36,0.03);
+  --glass-border: rgba(12,18,36,0.05);
+  --gold-1:#b8860b; --gold-2:#ffd97a;
+  --muted:#556574; --text:#062034;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;}
+html,body{height:100%;margin:0;background:
+  radial-gradient(900px 360px at 8% 8%, rgba(201,168,74,0.03), transparent),
+  linear-gradient(180deg,var(--bg-dark-1),var(--bg-dark-2));
+  color:var(--text); -webkit-font-smoothing:antialiased;transition:background 360ms ease,color 200ms;}
+.container{max-width:1180px;margin:28px auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo-wrap{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));display:flex;align-items:center;justify-content:center;box-shadow:0 12px 40px rgba(201,168,74,0.14)}
+.logo-min{width:38px;height:38px}
+.title{display:flex;flex-direction:column}
+.title h1{margin:0;font-size:1.05rem}
+.subtitle{color:var(--muted);font-size:0.88rem}
+.top-controls{display:flex;align-items:center;gap:8px}
+.chip{padding:8px 10px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent);border:1px solid var(--glass-border);font-weight:700}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs button{background:transparent;border:1px solid transparent;padding:10px 14px;border-radius:12px;color:var(--text);font-weight:800;cursor:pointer;transition:all 220ms}
+.tabs button.active{background:linear-gradient(90deg, rgba(201,168,74,0.12), rgba(255,217,122,0.04));border:1px solid rgba(201,168,74,0.10);box-shadow:0 8px 30px rgba(201,168,74,0.03)}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start;margin-top:12px}
+@media(max-width:980px){ .layout{grid-template-columns:1fr} }
+.panel{border-radius:var(--radius);padding:16px;background:linear-gradient(180deg,var(--card),rgba(255,255,255,0.01));border:1px solid var(--glass-border);backdrop-filter:blur(10px);box-shadow:var(--shadow);min-height:480px}
+.card{border-radius:var(--radius);padding:16px;background:linear-gradient(180deg,var(--card),rgba(255,255,255,0.01));border:1px solid var(--glass-border);backdrop-filter:blur(12px);box-shadow:var(--shadow);transition:transform 200ms ease,opacity 200ms}
+.card:hover{transform:translateY(-6px)}
+.muted{color:var(--muted)}
+.room-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.room-title{font-weight:900;font-size:1.05rem}
+.room-sub{color:var(--muted);font-size:0.9rem}
+.stats{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+.stat{min-width:160px;flex:1;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid var(--glass-border);transition:background 200ms}
+.label{color:var(--muted);font-size:0.86rem}
+.value{font-size:1.4rem;font-weight:800;margin-top:6px}
+.visuals{display:flex;gap:16px;margin-top:14px;align-items:center}
+.gauge{width:170px;height:170px;display:flex;align-items:center;justify-content:center}
+canvas.linechart{width:100%;height:160px;border-radius:8px;background:transparent}
+.controls{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.range{width:260px}
+.footer{margin-top:18px;padding:12px;border-radius:12px;border:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01));color:var(--muted)}
+.toast{position:fixed;right:22px;top:22px;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,var(--danger),#ff8b8b);color:white;box-shadow:0 12px 40px rgba(0,0,0,0.45);display:flex;gap:12px;align-items:center;z-index:9999}
+.toast.small{background:linear-gradient(90deg,var(--warn),#ffd39b);color:#222}
+.toast.hidden{display:none;opacity:0;pointer-events:none}
+.debug{display:none;position:fixed;left:8px;bottom:8px;right:8px;height:260px;background:rgba(0,0,0,0.7);color:#fff;padding:12px;border-radius:8px;overflow:auto;z-index:9999}
+.iconbtn{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));box-shadow:0 8px 30px rgba(201,168,74,0.12);cursor:pointer}
+.small{padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;color:var(--text)}
+.badge{min-width:110px;padding:8px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent);text-align:center;font-weight:800}
+.ambient{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:10;mix-blend-mode:screen;opacity:0.06;transition:background 600ms linear}
+.lastactive{font-size:0.9rem;color:var(--muted);margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+<body data-theme="dark">
+  <div id="ambient" class="ambient"></div>
+
+  <!-- Splash -->
+  <div id="splash" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.75),rgba(0,0,0,0.5));z-index:9999">
+    <div style="text-align:center;color:white">
+      <svg width="120" height="120" viewBox="0 0 100 100" aria-hidden="true">
+        <defs><linearGradient id="Ggold" x1="0" x2="1"><stop offset="0" stop-color="#c9a84a"/><stop offset="1" stop-color="#ffd97a"/></linearGradient></defs>
+        <g transform="translate(10,8)">
+          <path d="M20 30 L50 8 L80 30 V68 A6 6 0 0 1 74 74 H26 A6 6 0 0 1 20 68 Z" fill="url(#Ggold)"></path>
+          <rect x="40" y="40" width="20" height="22" rx="3" fill="#fff" opacity="0.08"></rect>
+        </g>
+      </svg>
+      <div style="font-weight:800;margin-top:8px">Smart Home System</div>
+      <div style="color:rgba(255,255,255,0.85);margin-top:6px">Secure · Live · Designed for Kashmir winters</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-wrap" id="logoMark" title="Environment health">
+          <!-- minimal golden home icon -->
+          <svg class="logo-min" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 3L3 9v9a1 1 0 0 0 1 1h5v-6h4v6h5a1 1 0 0 0 1-1V9L12 3z" fill="white" opacity="0.95"/>
+          </svg>
+        </div>
+        <div class="title">
+          <h1>Smart Home System</h1>
+          <div class="subtitle">Live monitoring — MU08</div>
+        </div>
+      </div>
+
+      <div class="top-controls">
+        <div class="chip" id="timeChip">--:--:--</div>
+        <div class="chip muted" id="statusChip">Connecting...</div>
+        <input id="uidInput" type="text" value="MU08" title="Device UID (MU08)" style="padding:8px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;color:var(--text)"/>
+        <a id="mailBtn" class="chip" href="mailto:mohammaduthman08@gmail.com" title="Mail Mohammad">✉️</a>
+        <div id="soundToggle" class="chip" title="Toggle alert sound" style="cursor:pointer">🔔</div>
+        <div id="themeToggle" class="chip" title="Toggle theme" style="cursor:pointer">🌗</div>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Pages">
+      <button class="active" data-page="bedroom">🛏 Bedroom</button>
+      <button data-page="livingroom">🛋 Living Room</button>
+      <button data-page="kitchen">🍳 Kitchen</button>
+      <button data-page="about">ℹ About</button>
+    </nav>
+
+    <div class="layout">
+      <aside class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="muted">Connection</div>
+            <div style="margin-top:8px" id="connPill" class="chip">Connecting…</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted">Location</div>
+            <div style="margin-top:8px" id="locPill" class="chip muted">Detecting…</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="muted">Quick Actions</div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button id="allOff" class="small">All LED OFF</button>
+            <button id="testAlert" class="small">Test Alert</button>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="muted">Contact</div>
+          <div style="display:flex;gap:12px;margin-top:10px">
+            <div id="igIcon" class="iconbtn" title="Instagram"></div>
+            <div id="liIcon" class="iconbtn" title="LinkedIn"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;color:var(--muted);font-size:13px">© 2025 Smart Home System — Developed by Mohammad Uthman</div>
+      </aside>
+
+      <main id="mainArea"></main>
+    </div>
+
+    <div class="footer">
+      <div>
+        <strong>Developed by Mohammad Uthman</strong>
+        <div class="muted" style="margin-top:6px">Built to protect homes & save energy in Kashmir winters</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="muted">Contact</div>
+        <div id="ftIg" class="iconbtn" title="Instagram"></div>
+        <div id="ftLi" class="iconbtn" title="LinkedIn"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"><strong id="toastTitle">ALERT</strong><div id="toastMsg" style="margin-left:10px"></div></div>
+  <div id="debug" class="debug"><pre id="debugPre"></pre></div>
+
+<script>
+/* ========== CONFIG ========== */
+const API_BASE = 'https://iot.roboninja.in/index.php';
+const POLL_MS = 4000;              // main poll interval
+const HISTORY_MAX = 60;
+const ACTIVE_WINDOW_S = 150;
+let pollRunning = false;
+
+/* ========== STATE ========== */
+const state = {
+  uid: document.getElementById('uidInput').value || 'MU08',
+  theme: localStorage.getItem('sh_theme') || 'dark',
+  alertSound: true,
+  history: {},
+  lastActive: { bedroom: null, livingroom: null, kitchen: null }
+};
+
+/* ========== UTILS ========== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function log(){ try{ $('#debugPre').textContent = (new Date().toLocaleTimeString()) + ' — ' + Array.from(arguments).map(a => (typeof a==='object'?JSON.stringify(a):a)).join(' ') + '\\n' + $('#debugPre').textContent }catch(e){} }
+function uid(){ return ($('#uidInput').value || 'MU08').trim(); }
+
+/* ========== THEME, ICONS, UI ========== */
+function applyTheme(){ document.body.setAttribute('data-theme', state.theme); localStorage.setItem('sh_theme', state.theme); $('#themeToggle').textContent = state.theme === 'dark' ? '🌗' : '☀️'; }
+$('#themeToggle').addEventListener('click', ()=>{ state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(); });
+applyTheme();
+
+$('#soundToggle').addEventListener('click', ()=>{ state.alertSound = !state.alertSound; $('#soundToggle').textContent = state.alertSound ? '🔔' : '🔕'; });
+
+$$('.tabs button').forEach(b => b.addEventListener('click', ()=>{
+  $$('.tabs button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  state.page = b.dataset.page; renderPage();
+}));
+
+/* Inline SVG icons for Insta / LinkedIn */
+function injectIcons(){
+  const ig = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zM12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm5.2-.9a1.1 1.1 0 1 0 1.1 1.1 1.1 1.1 0 0 0-1.1-1.1z"/></svg>';
+  const li = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M4.98 3.5a2.5 2.5 0 1 1 .02 0zM3.5 8.5H6.5V20H3.5zM9 8.5h2.8v1.56h.04c.39-.74 1.33-1.52 2.74-1.52 2.93 0 3.47 1.93 3.47 4.43V20H16v-5.3c0-1.26-.02-2.88-1.76-2.88-1.76 0-2.03 1.38-2.03 2.8V20H9z"/></svg>';
+  $$('#igIcon,#ftIg').forEach(n => { if(n) n.innerHTML = ig; n && n.addEventListener('click', ()=> window.open('https://instagram.com/lifethroughuthmanslens','_blank'));});
+  $$('#liIcon,#ftLi').forEach(n => { if(n) n.innerHTML = li; n && n.addEventListener('click', ()=> window.open('https://www.linkedin.com/in/mohammad-uthman','_blank'));});
+}
+injectIcons();
+
+/* ========== PAGE RENDERING ========== */
+function renderPage(){
+  const main = $('#mainArea'); main.innerHTML = '';
+  const page = state.page || 'bedroom';
+  if(page==='livingroom') renderLiving(main);
+  else if(page==='kitchen') renderKitchen(main);
+  else if(page==='about') renderAbout(main);
+  else renderBedroom(main);
+}
+
+/* Bedroom */
+function renderBedroom(root){
+  const el = document.createElement('div'); el.className='card';
+  el.innerHTML = `
+    <div class="room-head"><div><div class="room-title">Bedroom</div><div class="room-sub">Temp · Humidity · MQ135 (Air) · Motion</div></div><div style="text-align:right" class="muted">UID: ${uid()}</div></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Temperature</div><div id="bed-temp" class="value">— °C</div></div>
+      <div class="stat"><div class="label">Humidity</div><div id="bed-hum" class="value">— %</div></div>
+      <div class="stat"><div class="label">Air (MQ135)</div><div id="bed-air" class="value">—</div></div>
+      <div class="stat"><div class="label">Motion</div><div id="bed-motion" class="value">—</div></div>
+    </div>
+    <div class="visuals"><div class="gauge"><canvas id="bedGauge" width="170" height="170"></canvas></div><canvas id="bedChart" class="linechart"></canvas></div>
+    <div class="controls"><button id="bedLedOn" class="chip">LED ON</button><button id="bedLedOff" class="chip small">LED OFF</button></div>
+    <div class="lastactive muted">Last active: <span id="bedLast">—</span></div>
+  `;
+  root.appendChild(el);
+  $('#bedLedOn').addEventListener('click', ()=> writeVar('LED',1));
+  $('#bedLedOff').addEventListener('click', ()=> writeVar('LED',0));
+  initGauge('bedGauge'); initLine('bedChart','Temperature_Bedroom');
+}
+
+/* Living Room */
+function renderLiving(root){
+  const el = document.createElement('div'); el.className='card';
+  el.innerHTML = `
+    <div class="room-head"><div><div class="room-title">Living Room</div><div class="room-sub">Temp · Humidity · LDR · Motion · People</div></div><div style="text-align:right" class="muted">UID: ${uid()}</div></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Temperature</div><div id="liv-temp" class="value">— °C</div></div>
+      <div class="stat"><div class="label">Humidity</div><div id="liv-hum" class="value">— %</div></div>
+      <div class="stat"><div class="label">Light (LDR)</div><div id="liv-ldr" class="value">—</div></div>
+      <div class="stat"><div class="label">People</div><div id="liv-people" class="value">—</div></div>
+    </div>
+    <div class="visuals"><div class="gauge"><canvas id="livGauge" width="170" height="170"></canvas></div><canvas id="livChart" class="linechart"></canvas></div>
+    <div class="controls">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div><div class="muted">LED Brightness</div><input id="livSlider" type="range" min="30" max="255" value="128" class="range"/></div>
+        <div class="badge" id="livBadge">128 / 255</div>
+        <div><label><input id="livAuto" type="checkbox" checked /> Auto</label></div>
+      </div>
+      <div style="margin-top:10px"><button id="livBuzz" class="chip">Buzzer</button><button id="livReset" class="chip small">Reset People</button></div>
+    </div>
+    <div class="lastactive muted">Last active: <span id="livLast">—</span></div>
+  `;
+  root.appendChild(el);
+  $('#livSlider').addEventListener('input', e=> { $('#livBadge').textContent = `${e.target.value} / 255`; state.overrideVal = Number(e.target.value); state.overrideExpires = Date.now() + 60000; });
+  $('#livSlider').addEventListener('change', e=> writeVar('LED', Number(e.target.value)));
+  $('#livBuzz').addEventListener('click', ()=> writeVar('BUZZ',1));
+  $('#livReset').addEventListener('click', ()=> writeVar('People',0));
+  initGauge('livGauge'); initLine('livChart','Temperature_LivingRoom');
+}
+
+/* Kitchen */
+function renderKitchen(root){
+  const el = document.createElement('div'); el.className='card';
+  el.innerHTML = `
+    <div class="room-head"><div><div class="room-title">Kitchen</div><div class="room-sub">Temp · Humidity · MQ2 (Gas) · MQ5 (Smoke) · Buzzer</div></div><div style="text-align:right" class="muted">UID: ${uid()}</div></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Temperature</div><div id="kit-temp" class="value">— °C</div></div>
+      <div class="stat"><div class="label">Humidity</div><div id="kit-hum" class="value">— %</div></div>
+      <div class="stat"><div class="label">Gas (MQ2)</div><div id="kit-gas" class="value">— %</div></div>
+      <div class="stat"><div class="label">Smoke (MQ5)</div><div id="kit-smoke" class="value">—</div></div>
+    </div>
+    <div class="visuals"><div class="gauge"><canvas id="kitGauge" width="170" height="170"></canvas></div><canvas id="kitChart" class="linechart"></canvas></div>
+    <div class="controls"><button id="kitBuzz" class="chip">Sound Buzzer</button></div>
+    <div class="lastactive muted">Last active: <span id="kitLast">—</span></div>
+  `;
+  root.appendChild(el);
+  $('#kitBuzz').addEventListener('click', ()=> writeVar('BUZZ',1));
+  initGauge('kitGauge'); initLine('kitChart','Smoke_Kitchen');
+}
+
+/* About */
+function renderAbout(root){
+  const el = document.createElement('div');
+  el.className='card';
+  el.innerHTML = `
+    <div class="room-head fade-in">
+      <div>
+        <div class="room-title">About — Smart Home System</div>
+        <div class="room-sub">Built for Kashmir Winters • Powered by IoT</div>
+      </div>
+      <div style="text-align:right" class="muted">UID: ${uid()}</div>
+    </div>
+
+    <div style="margin-top:14px;color:var(--muted);line-height:1.7" class="fade-in">
+      <p>
+        <strong>Smart Home System</strong> is a next-generation IoT safety and automation platform,
+        created to address the harsh winter realities of <strong>Kashmir</strong>. Every year,
+        dozens of families lose their lives due to unsafe heating, gas leaks, and lack of
+        real-time monitoring. This system is built to prevent such tragedies by integrating
+        intelligent sensors, energy management, and instant alerts — all in one minimal interface.
+      </p>
+
+      <h4 style="margin-top:16px;color:var(--fg)">How It Works</h4>
+      <p>
+        The system tracks <strong>temperature</strong>, <strong>humidity</strong>, <strong>gas levels</strong>
+        (via MQ2 & MQ5), and <strong>motion</strong> using PIR sensors in each room.  
+        When critical limits are reached — such as night-time temperature above <strong>30°C</strong> or
+        harmful gases detected — alerts are triggered instantly and power usage is automatically
+        adjusted to maintain safety and efficiency.
+      </p>
+
+      <h4 style="margin-top:16px;color:var(--fg)">Why It Matters</h4>
+      <p>
+        In Kashmir, where winter temperatures can drop below freezing, indoor heating becomes a
+        necessity — yet it often turns deadly. According to local health reports,
+        <strong>over 60% of households</strong> rely on indoor heaters, and unsafe heating contributes to
+        <strong>dozens of fatalities every year</strong> due to trapped carbon monoxide and toxic fumes.
+        Smart automation can drastically reduce such risks.
+      </p>
+
+      <div class="fact-box fade-in" style="margin-top:18px;padding:14px;border-radius:16px;background:var(--glass);backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+        <h4 style="margin-bottom:8px;">Facts & Impact</h4>
+        <ul style="margin-left:16px;line-height:1.8;">
+          <li>⚙️ Energy savings: <strong><span class="counter" data-target="25">0</span>%</strong> lower usage due to intelligent heater control.</li>
+          <li>🌡️ Safety threshold: Prevents overheating beyond <strong><span class="counter" data-target="30">0</span>°C</strong> at night.</li>
+          <li>💨 Detects carbon monoxide, smoke, and LPG leaks instantly.</li>
+          <li>🕒 Real-time dashboards, history graphs & per-room analytics.</li>
+        </ul>
+      </div>
+
+      <h4 style="margin-top:18px;color:var(--fg)">Designed & Developed By</h4>
+      <p>
+        <strong>Mohammad Uthman</strong> — Innovator and youth leader from Kashmir, merging sustainability
+        with technology to safeguard communities.  
+        <br><br>
+        <a href="https://www.instagram.com/lifethroughuthmanslens" target="_blank" title="Instagram" class="social-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="22" height="22" fill="currentColor"><path d="M224,202.66A53.34,53.34,0,1,0,277.34,256,53.38,53.38,0,0,0,224,202.66Zm124.71-41a54.13,54.13,0,0,0-30.24-30.24C293.21,124.43,224,124,224,124s-69.21.43-94.47,7.42a54.13,54.13,0,0,0-30.24,30.24C92.43,149.79,92,219,92,219s.43,69.21,7.42,94.47a54.13,54.13,0,0,0,30.24,30.24C154.79,355.57,224,356,224,356s69.21-.43,94.47-7.42a54.13,54.13,0,0,0,30.24-30.24C355.57,288.21,356,219,356,219S355.57,149.79,348.71,161.71ZM224,338a82,82,0,1,1,82-82A82.09,82.09,0,0,1,224,338Zm85.34-148.7a19.14,19.14,0,1,1,19.14-19.14A19.13,19.13,0,0,1,309.34,189.3Z"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/mohammad-uthman" target="_blank" title="LinkedIn" class="social-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="22" height="22" fill="currentColor"><path d="M100.28 448H7.4V149.9h92.88zm-46.44-338a53.79 53.79 0 1 1 53.79-53.8 53.8 53.8 0 0 1-53.79 53.8zM447.9 448h-92.68V302.4c0-34.7-12.41-58.4-43.47-58.4-23.7 0-37.8 16-44 31.4-2.3 5.6-2.8 13.5-2.8 21.4V448H172.3s1.2-238.4 0-263h92.68v37.3c12.3-19 34.2-46.1 83.2-46.1 60.7 0 106.2 39.7 106.2 125.1z"/></svg>
+        </a>
+        <a href="mailto:mohammaduthman08@gmail.com" title="Email" class="social-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="22" height="22" fill="currentColor"><path d="M502.3 190.8 327.4 338c-15.9 13.2-39.1 13.2-55 0L9.7 190.8A48 48 0 0 1 0 150.1V96a48 48 0 0 1 48-48h416a48 48 0 0 1 48 48v54.1a48 48 0 0 1-9.7 40.7zM480 208v208a48 48 0 0 1-48 48H80a48 48 0 0 1-48-48V208l168.6 140.3a95.75 95.75 0 0 0 118.8 0z"/></svg>
+        </a>
+      </p>
+    </div>
+  `;
+  root.appendChild(el);
+
+  // Counter animation
+  const counters = el.querySelectorAll('.counter');
+  counters.forEach(counter => {
+    const updateCount = () => {
+      const target = +counter.getAttribute('data-target');
+      const count = +counter.innerText;
+      const speed = 25;
+      if(count < target){
+        counter.innerText = Math.ceil(count + target / 50);
+        setTimeout(updateCount, speed);
+      } else {
+        counter.innerText = target;
+      }
+    };
+    updateCount();
+  });
+}
+
+/* ========== GAUGES & CHARTS ========== */
+function initGauge(id){
+  const c = document.getElementById(id); if(!c) return; if(!c._state) c._state = { value:0, target:0 }; drawAnimated(c);
+}
+function drawAnimated(c){
+  if(!c) return;
+  const s = c._state;
+  s.value += (s.target - s.value) * 0.12;
+  drawGauge(c, Math.round(s.value));
+  if(Math.abs(s.target - s.value) > 0.5) requestAnimationFrame(()=> drawAnimated(c));
+}
+function drawGauge(canvas, pct){
+  const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 14;
+  ctx.lineCap = 'round';
+  // background arc
+  ctx.beginPath(); ctx.lineWidth = 14; ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.arc(cx,cy,r, Math.PI*0.75, Math.PI*0.25, false); ctx.stroke();
+  // color selection robust in both themes
+  const cs = getComputedStyle(document.body);
+  const ok = cs.getPropertyValue('--ok').trim() || '#4ef08a';
+  const warn = cs.getPropertyValue('--warn').trim() || '#ffb86b';
+  const danger = cs.getPropertyValue('--danger').trim() || '#ff6b6b';
+  const gold = cs.getPropertyValue('--gold-1').trim() || '#c9a84a';
+  let color = pct > 75 ? ok : pct > 45 ? warn : danger;
+  // golden accent if very healthy
+  if(pct >= 85) color = gold;
+  const end = Math.PI*0.75 + (Math.PI*1.5) * (pct/100);
+  ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.arc(cx,cy,r, Math.PI*0.75, end, false); ctx.stroke();
+  // center text
+  ctx.fillStyle = cs.getPropertyValue('--text') || '#fff'; ctx.font = 'bold 16px system-ui';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(pct + '%', cx, cy);
+}
+
+/* Line chart helper */
+function initLine(id){ const c = document.getElementById(id); if(!c) return; drawLine(c, state.history[id.replace('Chart','')]); }
+function drawLine(canvas, arr){
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
+  for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(0, (canvas.height/4)*i); ctx.lineTo(canvas.width, (canvas.height/4)*i); ctx.stroke(); }
+  if(!arr || arr.length===0) return;
+  const vals = arr.map(x=>x.v); const max = Math.max(...vals), min = Math.min(...vals), range = max - min || 1;
+  ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--gold-1')||'#c9a84a';
+  for(let i=0;i<arr.length;i++){ const x = (i/(arr.length-1||1)) * canvas.width; const y = canvas.height - ((arr[i].v - min)/range) * canvas.height; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+  ctx.stroke();
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted') || '#9fb0d9'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'right';
+  ctx.fillText(String(arr[arr.length-1].v), canvas.width - 8, 16);
+}
+
+/* ========== API helpers (simple, robust) ========== */
+async function fetchWithTimeout(url, timeout=7000){
+  const ctrl = new AbortController(); const id = setTimeout(()=>ctrl.abort(), timeout);
+  try{ const r = await fetch(url, {signal: ctrl.signal}); clearTimeout(id); return r; }catch(e){ clearTimeout(id); throw e; }
+}
+async function apiReadAll(u){
+  const url = `${API_BASE}?action=read_all&UID=${encodeURIComponent(u)}`;
+  const r = await fetchWithTimeout(url);
+  const t = await r.text();
+  try { return JSON.parse(t); } catch(e){ return { raw: t }; }
+}
+async function apiReadHistory(u, field){
+  const url = `${API_BASE}?action=read_history&UID=${encodeURIComponent(u)}&field=${encodeURIComponent(field)}`;
+  const r = await fetchWithTimeout(url);
+  const t = await r.text();
+  try { return JSON.parse(t); } catch(e){ return []; }
+}
+async function writeVar(k,v){
+  try{ const r = await fetch(`${API_BASE}?action=write&UID=${encodeURIComponent(uid())}&${encodeURIComponent(k)}=${encodeURIComponent(v)}`); const txt = await r.text(); log('write',k,v, '->', txt); return txt; }catch(e){ log('write err', e); return null; }
+}
+
+/* ========== ALERT UX ========== */
+function playPing(){ if(!state.alertSound) return; try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); const now = ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12, now + 0.01); o.start(now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18); o.stop(now + 0.2); }catch(e){} }
+let alertTimer = null;
+function showAlert(title,msg,critical=false,room=null){ const t = $('#toast'); $('#toastTitle').textContent = title; $('#toastMsg').textContent = ' ' + msg; t.classList.remove('hidden'); t.classList.toggle('small', !critical); t.style.background = critical ? 'linear-gradient(90deg,var(--danger),#ff8b8b)' : 'linear-gradient(90deg,var(--warn),#ffd39b)'; playPing(); t.onclick = ()=>{ if(room) $$('nav.tabs button').forEach(b=>{ if(b.dataset.page===room) b.click(); }); t.classList.add('hidden'); }; clearTimeout(alertTimer); alertTimer = setTimeout(()=> t.classList.add('hidden'), 11000); }
+
+/* ========== Last-seen & active ========== */
+async function updateLastSeen(u){
+  try{
+    const bed = await apiReadHistory(u, 'Temperature_Bedroom');
+    const liv = await apiReadHistory(u, 'Temperature_LivingRoom');
+    const kit = await apiReadHistory(u, 'Temperature_Kitchen');
+    const now = Date.now();
+    function ts(arr){ if(!Array.isArray(arr)||arr.length===0) return null; const last = arr[arr.length-1]; const T = last.Timestamp || last.timestamp || last.Time || last.time; return T ? new Date(T).getTime() : now; }
+    const bts = ts(bed), lts = ts(liv), kts = ts(kit);
+    state.lastActive.bedroom = bts; state.lastActive.livingroom = lts; state.lastActive.kitchen = kts;
+    if($('#bedLast')) $('#bedLast').textContent = bts ? timeAgo(bts) : '—';
+    if($('#livLast')) $('#livLast').textContent = lts ? timeAgo(lts) : '—';
+    if($('#kitLast')) $('#kitLast').textContent = kts ? timeAgo(kts) : '—';
+  }catch(e){ log('active err', e); }
+}
+function timeAgo(ts){ if(!ts) return '—'; const s = Math.round((Date.now()-ts)/1000); if(s<60) return `${s}s ago`; if(s<3600) return `${Math.round(s/60)}m ago`; if(s<86400) return `${Math.round(s/3600)}h ago`; return `${Math.round(s/86400)}d ago`; }
+
+/* ========== Polling loop (no overlap) ========== */
+async function pollOnce(){
+  if(pollRunning) return;
+  pollRunning = true;
+  try{
+    const u = uid();
+    const data = await apiReadAll(u);
+    $('#connPill').textContent = 'Online'; $('#statusChip').textContent = 'Online';
+    const map = {}; if(typeof data === 'object') Object.keys(data).forEach(k=> map[k.toLowerCase()] = data[k]);
+
+    const get = (...cands)=>{ for(const c of cands) if(c && (c.toLowerCase() in map)) return map[c.toLowerCase()]; return undefined; };
+
+    // bedroom
+    const bedT = get('temperature_bedroom','temperature_bedroom','temperature');
+    const bedH = get('humidity_bedroom','humidity_bedroom','humidity');
+    const bedAir = get('airquality_bedroom','mq135_bedroom','air_quality_bedroom','airquality');
+    const bedMotion = get('motion_bedroom','motion_bedroom','motion');
+
+    // living
+    const livT = get('temperature_livingroom','temperature_livingroom','temperature_living');
+    const livH = get('humidity_livingroom','humidity_livingroom','humidity_living');
+    const livLdr = get('light_livingroom','ldr_livingroom','light_livingroom','light');
+    const livMotion = get('motion_livingroom','motion_livingroom','motion_living');
+    const livPeople = get('people_livingroom','people_livingroom','people');
+
+    // kitchen
+    const kitT = get('temperature_kitchen','temperature_kitchen','temperature_k');
+    const kitH = get('humidity_kitchen','humidity_kitchen','humidity_k');
+    const kitGas = get('gas_kitchen','gas_kitchen','mq2_kitchen','gas');
+    const kitSmoke = get('smoke_kitchen','mq5_kitchen','smoke');
+
+    // update UI values (if present)
+    if($('#bed-temp')) { if(bedT!==undefined) $('#bed-temp').textContent = Number(bedT).toFixed(1)+' °C'; if(bedH!==undefined) $('#bed-hum').textContent = String(bedH)+' %'; if(bedAir!==undefined) $('#bed-air').textContent = String(bedAir); if(bedMotion!==undefined) $('#bed-motion').textContent = Number(bedMotion)?'Detected':'None'; }
+    if($('#liv-temp')) { if(livT!==undefined) $('#liv-temp').textContent = Number(livT).toFixed(1)+' °C'; if(livH!==undefined) $('#liv-hum').textContent = String(livH)+' %'; if(livLdr!==undefined) $('#liv-ldr').textContent = String(livLdr); if(livPeople!==undefined) $('#liv-people').textContent = String(livPeople); }
+    if($('#kit-temp')) { if(kitT!==undefined) $('#kit-temp').textContent = Number(kitT).toFixed(1)+' °C'; if(kitH!==undefined) $('#kit-hum').textContent = String(kitH)+' %'; if(kitGas!==undefined) $('#kit-gas').textContent = String(kitGas)+' %'; if(kitSmoke!==undefined) $('#kit-smoke').textContent = Number(kitSmoke)?'Detected':'None'; }
+
+    // push histories
+    pushHistory('Temperature_Bedroom', Number(bedT||0));
+    pushHistory('Temperature_LivingRoom', Number(livT||0));
+    pushHistory('Smoke_Kitchen', Number(kitSmoke||0));
+
+    // draw small charts
+    if($('#bedChart')) drawLine($('#bedChart'), state.history['Temperature_Bedroom']);
+    if($('#livChart')) drawLine($('#livChart'), state.history['Temperature_LivingRoom']);
+    if($('#kitChart')) drawLine($('#kitChart'), state.history['Smoke_Kitchen']);
+
+    // set gauges per room:
+    // bedroom: air quality -> health% = 100 - normalized(air)
+    if(bedAir!==undefined){
+      const raw = Number(bedAir);
+      const normal = raw > 100 ? Math.round((raw/1023)*100) : Math.min(100, Math.round(raw));
+      const health = Math.max(0,100-normal);
+      setGauge('bedGauge', health);
+    }
+    // livingroom: brightness (inverse of LDR mapping)
+    if(livLdr!==undefined){
+      const ldr = Number(livLdr);
+      let mapped = Math.round(((Math.max(0,Math.min(1,(ldr-100)/(800-100))) ) * (30 - 255)) + 255);
+      mapped = Math.max(30, Math.min(255, mapped));
+      const pct = Math.round((mapped - 30) / (255 - 30) * 100);
+      setGauge('livGauge', pct);
+    }
+    // kitchen: danger = max(gas%, smoke%) => safety = 100 - danger
+    if(kitGas!==undefined || kitSmoke!==undefined){
+      let gas = kitGas!==undefined? Number(kitGas) : 0;
+      if(gas>100) gas = Math.round((gas/1023)*100);
+      const smoke = Number(kitSmoke) ? 100 : 0;
+      const danger = Math.max(gas, smoke);
+      setGauge('kitGauge', Math.max(0, 100 - danger));
+    }
+
+    // ambient glow: avg temp
+    const temps = [bedT, livT, kitT].filter(v=>v!==undefined).map(Number);
+    const avgTemp = temps.length ? temps.reduce((a,b)=>a+b,0)/temps.length : null;
+    if(avgTemp !== null) setAmbient(avgTemp);
+
+    // update last seen (async)
+    updateLastSeen(uid());
+
+    // time & status
+    $('#timeChip').textContent = new Date().toLocaleString();
+    state.uid = uid();
+
+    // alerts: temperature thresholds and smoke/gas
+    if(bedT!==undefined && Number(bedT) > 30) showAlert('⚠ Bedroom','Temperature exceeded 30°C', false, 'bedroom');
+    if(livT!==undefined && Number(livT) > 32) showAlert('⚠ Living Room','Temperature exceeded 32°C', false, 'livingroom');
+    if(kitSmoke!==undefined && Number(kitSmoke) == 1) showAlert('🚨 Kitchen','Smoke detected!', true, 'kitchen');
+    if(kitGas!==undefined && Number(kitGas) > 60) showAlert('⚠ Kitchen','Gas concentration high', true, 'kitchen');
+
+  }catch(e){
+    log('poll err', e);
+    $('#connPill').textContent = 'Offline';
+    $('#statusChip').textContent = 'Offline';
+  } finally { pollRunning = false; }
+}
+
+/* start polling */
+setInterval(()=> pollOnce(), POLL_MS);
+pollOnce();
+
+/* ========== small helpers ========== */
+function pushHistory(key, value){
+  if(!state.history[key]) state.history[key] = [];
+  state.history[key].push({t: Date.now(), v: Math.round((value+Number.EPSILON)*100)/100});
+  if(state.history[key].length > HISTORY_MAX) state.history[key].shift();
+}
+function setGauge(id, pct){
+  const c = document.getElementById(id); if(!c) return;
+  if(!c._s) c._s = { val: 0, target: pct }; c._s.target = pct;
+  if(Math.abs(c._s.val - c._s.target) > 0.5) requestAnimationFrame(function anim(){ c._s.val += (c._s.target - c._s.val) * 0.12; drawGauge(c, Math.round(c._s.val)); if(Math.abs(c._s.val - c._s.target) > 0.5) requestAnimationFrame(anim); });
+}
+
+/* ========== ambient & logo ========== */
+function setAmbient(avgTemp){
+  const el = document.getElementById('ambient'); if(!el) return;
+  let col = 'transparent';
+  if(avgTemp <= 10) col = 'radial-gradient(circle at 10% 20%, rgba(88,166,255,0.12), transparent)';
+  else if(avgTemp <= 22) col = 'radial-gradient(circle at 10% 20%, rgba(255,217,122,0.06), transparent)';
+  else col = 'radial-gradient(circle at 80% 80%, rgba(255,180,110,0.06), transparent)';
+  el.style.background = col;
+}
+function updateLogoGlow(){
+  const el = document.getElementById('logoMark'); if(!el) return;
+  const anyOld = Object.values(state.lastActive).some(t => !t || (Date.now() - t) > ACTIVE_WINDOW_S*1000);
+  el.style.background = anyOld ? 'linear-gradient(135deg,#a07a2e,#ffd97a)' : 'linear-gradient(135deg,var(--gold-1),var(--gold-2))';
+}
+
+/* ========== Time real-time (1s) ========= */
+setInterval(()=> { $('#timeChip').textContent = new Date().toLocaleString(); }, 1000);
+$('#timeChip').textContent = new Date().toLocaleString();
+
+/* ========== Geo location (Nominatim reverse geocode) ========== */
+function initGeo(){
+  if(!navigator.geolocation){ $('#locPill').textContent = 'Unsupported'; return; }
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat = pos.coords.latitude.toFixed(4), lon = pos.coords.longitude.toFixed(4);
+    $('#locPill').textContent = `${lat}, ${lon}`;
+    try{
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
+      const j = await r.json();
+      const a = j.address || {};
+      const parts = [];
+      if(a.suburb) parts.push(a.suburb); else if(a.village) parts.push(a.village); else if(a.city) parts.push(a.city);
+      if(a.state) parts.push(a.state); if(a.country) parts.push(a.country);
+      $('#locPill').textContent = parts.join(', ') || `${lat}, ${lon}`;
+    }catch(e){ $('#locPill').textContent = `${lat}, ${lon}`; }
+  }, err => { $('#locPill').textContent = 'Denied'; }, { timeout:10000 });
+}
+initGeo();
+
+/* ========== Last seen update loop ========== */
+setInterval(()=> { updateLastSeen(uid()); updateLogoGlow(); }, 8000);
+updateLastSeen(uid());
+
+/* ========== UI bindings ========== */
+$('#allOff').addEventListener('click', ()=> writeVar('LED',0));
+$('#testAlert').addEventListener('click', ()=> showAlert('⚠ Test','This is a test alert — Living Room temp 31°C', false, 'livingroom'));
+$('#mailBtn').addEventListener('click', ()=> {}); // mail link already set
+$$('.tabs button').forEach(b=>b.addEventListener('click', ()=> renderPage()));
+$('#uidInput').addEventListener('change', ()=> { state.uid = uid(); renderPage(); pollOnce(); });
+
+window.addEventListener('keydown', (e)=> { if(e.key.toLowerCase()==='d'){ const dbg = $('#debug'); dbg.style.display = dbg.style.display === 'block' ? 'none' : 'block'; }});
+
+/* init icons & first page */
+injectIcons();
+state.page = 'bedroom';
+renderPage();
+
+/* remove splash after first successful fetch or 4s */
+(async function hideSplash(){
+  const start = Date.now();
+  while(true){
+    try{ await pollOnce(); document.getElementById('splash').remove(); break; }catch(e){ if(Date.now()-start>4000){ try{ document.getElementById('splash').remove(); }catch(e){} break; } await new Promise(r=>setTimeout(r,300)); }
+  }
+})();
+
+/* End of script */
+</script>
+</body>
+</html>
