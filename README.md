@@ -59,7 +59,7 @@ Smart-Home-System/
 
 The web dashboard is hosted via **GitHub Pages** for instant access:
 
-🔗 **Live Demo:** [https://mohammaduthman08.github.io/Smart-Home-System](https://mohammaduthman08.github.io/Smart-Home-System)
+🔗 **Live Demo:** [https://smarthomesystembymu.netlify.app/](https://smarthomesystembymu.netlify.app/)
 
 To host your own:
 1. Fork this repository or upload your files.
