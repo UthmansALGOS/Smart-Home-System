@@ -120,7 +120,7 @@ STEM Student • Innovator • Youth Leader • Environmental Advocate
 📍 Srinagar, Jammu & Kashmir  
 
 📧 [mohammaduthman08@gmail.com](mailto:mohammaduthman08@gmail.com)  
-🔗 [LinkedIn](www.linkedin.com/in/mohammad-uthman)  
+🔗 [LinkedIn](hhtps://www.linkedin.com/in/mohammad-uthman)  
 📸 [Instagram](https://www.instagram.com/lifethroughuthmanslens)
 
 ---
