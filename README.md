@@ -1,141 +1,153 @@
-# 🏠 Smart Home System — IoT Safety & Automation for Kashmir Winters
+Smart Home System — IoT Safety & Automation for Kashmir Winters
 
-A next-generation **IoT-based home monitoring and automation system** built to ensure **safety, sustainability, and energy efficiency** during the harsh winters of **Kashmir**.  
+Smart Home System is an IoT-based home monitoring and automation project designed to make homes in Kashmir safer, more sustainable, and energy-efficient during the harsh winter months.
 
-Developed by **Mohammad Uthman**, this project merges technology and empathy to address real-world problems faced by families during sub-zero conditions.
+Developed by Mohammad Uthman, this project blends engineering with empathy to address real challenges faced by families living through sub-zero conditions.
 
----
+Why I Built This
 
-## 💡 Why I Built This Project
+Every winter in Kashmir, families face deadly risks due to unsafe heating, gas leaks, and the absence of reliable monitoring systems. Having grown up in this environment, I’ve witnessed first-hand how easily preventable tragedies occur — often because people lack awareness or access to affordable smart solutions.
 
-Every winter in Kashmir, numerous families face **life-threatening indoor conditions** due to unsafe heating, gas leaks, and the absence of real-time monitoring systems.  
-As someone who has grown up in this environment, I’ve witnessed how **preventable tragedies** occur due to **lack of awareness or affordable smart solutions**.
+This project started with a simple belief: technology should protect people, not just make their lives easier.
+By combining IoT sensors, automation, and a cloud-based dashboard, the Smart Home System helps Kashmiri households stay warm, safe, and efficient — even during long, freezing winters.
 
-This project was born out of the belief that **technology should protect lives** — not just make them easier.  
-By leveraging **IoT sensors**, **smart automation**, and **cloud dashboards**, the Smart Home System provides **peace of mind** to families, ensuring their homes remain **warm, efficient, and safe**.
+The Problem
 
----
+Each winter, dozens of people in Jammu & Kashmir lose their lives to carbon monoxide poisoning and suffocation caused by indoor heating systems.
 
-## ⚙️ Project Overview
+Between December 2024 and January 2025, six asphyxiation incidents claimed 19 lives across J&K — mostly due to improper heating in closed rooms.
 
-The system continuously tracks environmental parameters inside multiple rooms (Bedroom, Living Room, and Kitchen) and intelligently reacts to potential hazards.
+In the same month, nine people died in six days from suffocation caused by coal and gas heaters in poorly ventilated spaces.
 
-| Parameter | Sensor Used | Function |
-|------------|--------------|-----------|
-| 🌡️ Temperature & Humidity | DHT11 / DHT22 | Detects unsafe heat levels or low humidity |
-| 💨 Gas & Smoke | MQ2 / MQ5 | Detects carbon monoxide, LPG, and smoke |
-| 🚶 Motion | PIR Sensor | Detects unusual movement or inactivity |
-| 🔊 Buzzer | Active Buzzer | Sounds alerts for emergencies |
-| 🧠 MCU | NodeMCU (ESP8266) | Controls devices and sends data to the cloud |
-| 🖥️ Web Dashboard | HTML + JS + NinjaIoT | Displays real-time readings and analytics |
+Nationwide, over 124,000 deaths in 2015 were linked to indoor air pollution, according to a Business Standard report.
 
----
+The World Health Organisation (WHO) identifies indoor air pollution — from gas leaks, inefficient stoves, and smoke — as a major public health hazard in India.
 
-## 🧠 Features
+These statistics highlight an urgent need for affordable, real-time monitoring systems that can prevent such tragedies before they happen.
 
-- 📶 **Live Data Streaming** — View temperature, humidity, gas levels, and motion in real time.
-- 🧩 **Multi-Room Monitoring** — Separate dashboards for Bedroom, Living Room, and Kitchen.
-- 🔔 **Instant Alerts** — Notifies when gas or temperature exceeds safe thresholds.
-- ⚙️ **Smart Energy Management** — Automatically regulates heater and energy use.
-- ☁️ **Cloud Integration via NinjaIoT** — Secure real-time updates to your dashboard.
-- 📊 **Graphical Analytics** — View trends of temperature, humidity, and gas levels.
-- 🌙 **Dark Mode + Glass UI** — Elegant, minimal interface inspired by Apple design.
+Overview
 
----
+The system monitors key environmental conditions inside multiple rooms — such as temperature, humidity, gas concentration, and motion — and automatically reacts to potential dangers.
 
-## 🧩 Folder Structure
+Parameter	Sensor	Function
+Temperature & Humidity	DHT11 / DHT22	Monitors and maintains safe indoor temperature and humidity
+Gas & Smoke	MQ2 / MQ5	Detects carbon monoxide, LPG, and smoke
+Motion	PIR Sensor	Detects inactivity or unusual movement
+Alarm	Active Buzzer	Sounds alerts during emergencies
+Controller	NodeMCU (ESP8266)	manages sensors and transmits data to the cloud
+Dashboard	HTML + JavaScript + NinjaIoT	Displays live readings and trends
+Key Features
 
+Real-Time Monitoring: Live temperature, humidity, and gas readings across multiple rooms.
+
+Alerts & Automation: Automatically activates alarms or regulates appliances when thresholds are exceeded.
+
+Energy Efficiency: Smart heater control to reduce unnecessary power consumption.
+
+Multi-Room Dashboard: View separate panels for each room.
+
+Cloud Connectivity: Uses NinjaIoT for secure, low-latency data updates.
+
+Visual Analytics: Displays graphs and long-term trends for better insights.
+
+Minimal, Modern UI: Clean and responsive design for a smooth user experience.
+
+Folder Structure
 Smart-Home-System/
-├── index.html # Web dashboard
-├── livingroom.ino # NodeMCU code for living room
-├── bedroom.ino # NodeMCU code for bedroom
-├── kitchen.ino # NodeMCU code for kitchen
-└── README.md # Project documentation
+├── index.html         # Web dashboard
+├── livingroom.ino     # NodeMCU code for living room
+├── bedroom.ino        # NodeMCU code for bedroom
+├── kitchen.ino        # NodeMCU code for kitchen
+└── README.md          # Documentation
 
+Hosting & Deployment
 
----
+The live web dashboard is hosted on Netlify:
+Live Demo: https://smarthomesystembymu.netlify.app/
 
-## 🌍 Hosting & Deployment
+To host your own version:
 
-The web dashboard is hosted via **GitHub Pages** for instant access:
+Fork or clone the repository.
 
-🔗 **Live Demo:** [https://smarthomesystembymu.netlify.app/](https://smarthomesystembymu.netlify.app/)
+Go to Settings → Pages on GitHub.
 
-To host your own:
-1. Fork this repository or upload your files.
-2. Go to **Settings → Pages**.
-3. Set branch = `main`, folder = `/ (root)`.
-4. Save, and your dashboard will be live in under a minute.
+Set branch to main and folder to / (root).
 
----
+Save the settings — your dashboard will go live instantly.
 
-## ⚡ Hardware Requirements
+Hardware Requirements
 
-- NodeMCU ESP8266 (x3)
-- DHT11 / DHT22 Sensors
-- MQ2 / MQ5 Gas Sensors
-- PIR Motion Sensors
-- Active Buzzer
-- LCD I2C (optional)
-- Breadboard + Jumper Wires + Power Supply
+NodeMCU ESP8266 (x3)
 
----
+DHT11 / DHT22 Sensors
 
-## 🧰 Software Stack
+MQ2 / MQ5 Gas Sensors
 
-- **Arduino IDE** (for ESP8266)
-- **NinjaIoT Cloud Platform**
-- **HTML, CSS, JavaScript**
-- **Firebase / ThingSpeak (optional extensions)**
+PIR Motion Sensors
 
----
+Active Buzzer
 
-## 📈 How It Works
+LCD I2C Display (optional)
 
-1. Each NodeMCU device collects real-time data from its sensors.  
-2. Data is transmitted securely using **NinjaIoT**.
-3. The **web dashboard** fetches this live data and visualizes it using **dynamic graphs** and **status cards**.
-4. If unsafe conditions are detected:
-   - The buzzer activates.
-   - Alerts appear on the dashboard.
-   - Heater or device control can be automated.
+Breadboard, jumper wires, power supply
 
----
+Software Stack
 
-## 🌿 Impact
+Arduino IDE
 
-> “This project aims to make Kashmiri homes safer, one sensor at a time.”
+NinjaIoT Cloud Platform
 
-- 🧊 Designed specifically for **cold-climate households**.
-- ⚙️ Reduces **energy wastage by up to 25%** using intelligent automation.
-- 🫁 Detects **toxic gases, smoke, and overheating** before it’s too late.
-- 💬 Creates awareness about **IoT-driven sustainability** among youth.
+HTML, CSS, JavaScript
 
----
+Firebase / ThingSpeak (optional for extensions)
 
-## 🧑‍💻 Developer
+How It Works
 
-**Mohammad Uthman**  
-STEM Student • Innovator • Youth Leader • Environmental Advocate  
-📍 Srinagar, Jammu & Kashmir  
+Each NodeMCU gathers data from its connected sensors.
 
-📧 [mohammaduthman08@gmail.com](mailto:mohammaduthman08@gmail.com)  
-🔗 [LinkedIn](https://www.linkedin.com/in/mohammad-uthman)  
-📸 [Instagram](https://www.instagram.com/lifethroughuthmanslens)
+The data is sent securely to the NinjaIoT cloud.
 
----
+The web dashboard fetches and visualises the data in real time.
 
-## ❤️ Acknowledgements
+If dangerous conditions are detected:
 
-- Special thanks to **NinjaIoT** for providing the cloud infrastructure.  
-- Built with inspiration from **the resilience of Kashmiri families** and **a vision for smarter, safer homes**.
+The buzzer activates instantly.
 
----
+Alerts appear on the dashboard.
 
-### ✨ Quote
+Heaters or other devices can be regulated automatically.
 
-> “Innovation means building solutions for the problems that touch your own people first.”
+Impact
 
----
+This project is built for the people of Kashmir — to make homes safer and winters more bearable through accessible technology.
+
+Designed for cold-climate households prone to indoor heating risks.
+
+Can help reduce energy waste by up to 25% with automation.
+
+Detects and prevents carbon monoxide poisoning, gas leaks, and smoke accumulation.
+
+Promotes IoT literacy and innovation among young learners in the region.
+
+Developer
+
+Mohammad Uthman
+STEM Student • Innovator • Youth Leader
+Srinagar, Jammu & Kashmir
+
+📧 mohammaduthman08@gmail.com
+
+🔗 LinkedIn
+
+📸 Instagram
+
+Acknowledgements
+
+Grateful to NinjaIoT for providing cloud infrastructure support.
+
+Inspired by the resilience of Kashmiri families who face extreme winters with courage and perseverance.
+
+“Innovation means building solutions for the problems that touch your own people first.”
+— Mohammad Uthman
 
 © 2025 Mohammad Uthman — All Rights Reserved.
