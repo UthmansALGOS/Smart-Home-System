@@ -114,15 +114,10 @@ A live demo of the system dashboard is available at:
 ## 10. Folder Structure
 
 Smart-Home-System/
-
 ├── index.html # Web dashboard
-
 ├── livingroom.ino # NodeMCU (Living Room)
-
 ├── bedroom.ino # Wemos (Bedroom)
-
 ├── kitchen.ino # Wemos (Kitchen)
-
 └── README.md # Documentation
 
 
