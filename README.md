@@ -32,7 +32,7 @@ The Smart Home System monitors three primary household areas — the Living Room
 
 | Zone | Microcontroller | Sensors Used | Purpose |
 |------|------------------|---------------|----------|
-| Living Room | NodeMCU ESP8266 | DHT22 (Temperature/Humidity), PIR Motion, Buzzer | Detects unsafe temperature |
+| Living Room | NodeMCU ESP8266 | DHT11 (Temperature/Humidity), PIR Motion, Buzzer | Detects unsafe temperature |
 | Bedroom | Wemos D1 Mini | DHT11, MQ135 , PIR Motion | Ensures safe sleep environment |
 | Kitchen | Wemos D1 Mini | DHT11, MQ5 (Gas), MQ2(Smoke)| Detects LPG leaks or abnormal temperature |
 
